@@ -8,9 +8,9 @@ import curses # For TUI
 import random
 
 # --- Configuration ---
-LOFI_STREAM_URL = "https://www.youtube.com/watch?v=jfKfPfyJRdk"
-RAIN_SOUND_FILE = "./rain.ogg"
-STORM_SOUND_FILE = "./storm.ogg"
+LOFI_STREAM_URL = "https://www.youtube.com/watch?v=rFZHOHl-L8A"
+RAIN_SOUND_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rain.ogg")
+STORM_SOUND_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "storm.ogg")
 
 SOCKET_DIR = "/tmp"
 def get_socket_path(name):
