@@ -8,7 +8,14 @@ import curses # For TUI
 import random
 
 # --- Configuration ---
-LOFI_STREAM_URL = "https://www.youtube.com/watch?v=rFZHOHl-L8A"
+STREAMS = {
+    "lofi": "https://www.youtube.com/watch?v=rFZHOHl-L8A",
+    "synthwave": "https://www.youtube.com/watch?v=4xDzrJKXOOY",
+}
+# Pick the radio stream with `rainylofi.py synthwave` (default: lofi)
+STREAM_NAME = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in STREAMS else "lofi"
+LOFI_STREAM_URL = STREAMS[STREAM_NAME]
+STREAM_LABEL = STREAM_NAME.capitalize()  # shown in the TUI ("Lofi" / "Synthwave")
 RAIN_SOUND_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rain.ogg")
 STORM_SOUND_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "storm.ogg")
 
@@ -48,21 +55,21 @@ SOUND_PRESETS = {
         "lofi": {"playing": True, "volume": 60}, "rain": {"playing": True, "volume": 30}, "storm": {"playing": False, "volume": 0}}},
     '2': {"name": "Study Storm", "settings": {
         "lofi": {"playing": True, "volume": 40}, "rain": {"playing": True, "volume": 70}, "storm": {"playing": True, "volume": 70}}},
-    '3': {"name": "Quiet Lofi", "settings": {
+    '3': {"name": f"Quiet {STREAM_LABEL}", "settings": {
         "lofi": {"playing": True, "volume": 50}, "rain": {"playing": False, "volume": 0}, "storm": {"playing": False, "volume": 0}}},
     '0': {"name": "Silence All", "settings": {
         "lofi": {"playing": False, "volume": 0}, "rain": {"playing": False, "volume": 0}, "storm": {"playing": False, "volume": 0}}},
 }
 HELP_LINES_TEXT = [
-    "[L]ofi: Play/Pause  [O] Vol+  [K] Vol-",
+    f"[L] {STREAM_LABEL}: Play/Pause  [O] Vol+  [K] Vol-",
     "[R]ain: Play/Pause  [E] Vol+  [D] Vol-",
     "[S]torm:Play/Pause  [T] Vol+  [G] Vol-",
-    "Presets: [1]Chill [2]Study [3]Lofi [0]Mute",
+    f"Presets: [1]Chill [2]Study [3]{STREAM_LABEL} [0]Mute",
     "[H]elp Toggle    [Q]uit Player"
 ]
 HELP_DISPLAY_DURATION_FRAMES = 70
 
-PLAYER_TITLE = " ♪ Rainy Lofi ♪ "
+PLAYER_TITLE = f" ♪ Rainy {STREAM_LABEL} ♪ "
 
 # --- Internet Check ---
 def check_internet_connection(host="8.8.8.8", port=53, timeout=2):
@@ -175,7 +182,7 @@ def set_sound_state(stype, play_target, vol_target, s_states, mpv_procs):
                 state["playing"] = original_playing_state
                 state["volume"] = original_volume
                 if stype == "lofi" and state.get("_no_internet"):
-                    return "Lofi: No internet connection."
+                    return f"{STREAM_LABEL}: No internet connection."
                 if state.get("_mpv_not_found"):
                     return f"{stype.capitalize()}: mpv not found."
                 if state.get("_file_not_found"):
@@ -404,7 +411,7 @@ def draw_ui(stdscr, sound_states, feedback_message, h, w, animation_state, color
 
     if track_info_start_y <= track_info_end_y and track_info_start_y > anim_y_start-1 and track_info_start_y < h -1 :
         if track_info_start_y > 0:
-             draw_track_info_line(stdscr,track_info_start_y,"Lofi",sound_states["lofi"],w,color_cfg["main_text"],color_cfg["error"])
+             draw_track_info_line(stdscr,track_info_start_y,STREAM_LABEL,sound_states["lofi"],w,color_cfg["main_text"],color_cfg["error"])
         if track_info_start_y+1 > 0 and track_info_start_y+1 < h-1:
              draw_track_info_line(stdscr,track_info_start_y+1,"Rain",sound_states["rain"],w,color_cfg["main_text"],color_cfg["error"])
         if track_info_start_y+2 > 0 and track_info_start_y+2 < h-1:
@@ -431,8 +438,8 @@ def draw_ui(stdscr, sound_states, feedback_message, h, w, animation_state, color
                     except curses.error:
                         pass
     else:
-        main_instr_text = "[L/O/K]Lofi [R/E/D]Rain [S/T/G]Storm [H]Help [Q]Quit"
-        preset_instr_text = "Presets: [1]Chill [2]Storm [3]LofiOnly [0]Silence"
+        main_instr_text = f"[L/O/K]{STREAM_LABEL} [R/E/D]Rain [S/T/G]Storm [H]Help [Q]Quit"
+        preset_instr_text = f"Presets: [1]Chill [2]Storm [3]{STREAM_LABEL}Only [0]Silence"
         instr_y1 = instructions_area_start_y
         instr_y2 = instructions_area_start_y + 1
         feedback_line_y = instructions_area_start_y + 2
@@ -490,7 +497,7 @@ def draw_minimal_ui(stdscr, feedback_message, h, w, color_cfg):
     instr_sy=line_idx; instr_ey=fb_y-1 if can_fb else h-1
     try:
         if instr_sy <= instr_ey:
-            instr_texts = ["[LOK]Lofi [RED]Rain [STG]Storm [H]Help [Q]Quit", "Presets: [1][2][3][0]"]
+            instr_texts = [f"[LOK]{STREAM_LABEL} [RED]Rain [STG]Storm [H]Help [Q]Quit", "Presets: [1][2][3][0]"]
             total_ih=len(instr_texts); avail_ih=instr_ey-instr_sy+1;
             sdy = instr_sy + max(0, (avail_ih - total_ih) // 2)
 
